@@ -1,4 +1,4 @@
-Here's a comprehensive Linux command cheat sheet in Markdown format. You can convert this to PDF using tools like [Pandoc](https://pandoc.org/), [Typora](https://typora.io/), or online converters:
+Here's a comprehensive Linux command cheat sheet in Markdown format. 
 
 markdown
 # Essential Linux Commands Cheat Sheet

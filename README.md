@@ -1,6 +1,6 @@
 Here's a comprehensive Linux command cheat sheet in Markdown format. You can convert this to PDF using tools like [Pandoc](https://pandoc.org/), [Typora](https://typora.io/), or online converters:
 
-```markdown
+markdown
 # Essential Linux Commands Cheat Sheet
 
 ## Table of Contents
@@ -424,14 +424,7 @@ whereis ls
    command --help          # Quick help
    whatis command          # Brief description
    ```
-```
 
-### To Convert to PDF:
-1. Save as `linux_commands.md`
-2. Use one of these methods:
 
-**Option 1: Pandoc (Recommended)**
-```bash
-pandoc linux_commands.md -o linux_commands.pdf --pdf-engine=xelatex -V geometry:margin=1in
-```
+
 

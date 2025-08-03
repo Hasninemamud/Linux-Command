@@ -246,7 +246,243 @@ wc -c file.txt             # Count bytes only
 wc -m file.txt             # Count characters only
 ```
 
-## System Information
+## 🧑‍💻 User Management in Linux
+
+### 1. **User Accounts**
+#### Create a new user
+```bash
+sudo useradd -m -s /bin/bash newuser  # Create with home directory and bash shell
+sudo passwd newuser                   # Set password
+```
+
+#### Delete a user
+```bash
+sudo userdel -r newuser  # Delete user and home directory
+```
+
+#### Modify user properties
+```bash
+sudo usermod -l newname oldname    # Rename user
+sudo usermod -aG sudo newuser      # Add to sudo group
+sudo usermod -s /bin/zsh newuser   # Change default shell
+```
+
+### 2. **Group Management**
+#### Create/delete groups
+```bash
+sudo groupadd developers
+sudo groupdel developers
+```
+
+#### Manage group membership
+```bash
+sudo usermod -aG developers newuser  # Add user to group
+sudo gpasswd -d newuser developers   # Remove user from group
+```
+
+### 3. **User Information**
+```bash
+id newuser              # Show user/group IDs
+finger newuser          # Show user details
+last newuser           # Show login history
+who                    # Show logged-in users
+w                      # Show active users with processes
+```
+
+### 4. **Switching Users**
+```bash
+su - newuser           # Switch to user with environment
+sudo -i                # Switch to root
+sudo -u newuser command  # Run command as another user
+```
+
+### 5. **Password Management**
+```bash
+sudo passwd newuser    # Change user password
+sudo chage -l newuser  # Show password expiration info
+sudo chage -M 90 newuser  # Set password to expire in 90 days
+```
+
+---
+
+## 📁 File Management in Linux
+
+### 1. **File Operations**
+#### Create files
+```bash
+touch file.txt         # Create empty file
+echo "content" > file.txt  # Create with content
+nano file.txt          # Create with text editor
+```
+
+#### Copy files
+```bash
+cp file.txt backup.txt              # Copy file
+cp -r source_dir/ dest_dir/         # Copy directory
+cp -u source.txt dest.txt           # Update only if newer
+```
+
+#### Move/Rename files
+```bash
+mv old.txt new.txt      # Rename file
+mv file.txt /path/to/   # Move file
+mv *.txt documents/     # Move multiple files
+```
+
+#### Delete files
+```bash
+rm file.txt             # Delete file
+rm -r directory/        # Delete directory
+rm -f file.txt          # Force delete
+rm -i file.txt          # Interactive delete (confirm)
+```
+
+### 2. **Directory Operations**
+```bash
+mkdir new_dir           # Create directory
+mkdir -p path/to/dir   # Create nested directories
+rmdir empty_dir        # Remove empty directory
+```
+
+### 3. **File Viewing**
+```bash
+cat file.txt           # View entire file
+less file.txt          # View page by page
+head -n 20 file.txt    # View first 20 lines
+tail -f file.txt       # Follow file updates (logs)
+```
+
+### 4. **File Permissions**
+#### Symbolic mode
+```bash
+chmod u+x script.sh    # Add execute for owner
+chmod go-w file.txt    # Remove write for group/others
+chmod a=r file.txt     # Set read-only for all
+```
+
+#### Numeric mode
+```bash
+chmod 755 script.sh    # rwxr-xr-x
+chmod 644 file.txt     # rw-r--r--
+chmod 700 ~/.ssh/      # Restrict SSH directory
+```
+
+#### Ownership
+```bash
+sudo chown user:group file.txt  # Change owner and group
+sudo chown -R user /path/       # Recursive ownership change
+```
+
+### 5. **File Searching**
+```bash
+find /path -name "*.log"        # Find by name
+find /path -type f -mtime +7    # Find files modified >7 days ago
+find /path -size +100M          # Find files >100MB
+locate config.ini               # Quick name search
+```
+
+### 6. **File Comparison**
+```bash
+diff file1.txt file2.txt        # Show differences
+sdiff file1.txt file2.txt       # Side-by-side comparison
+vimdiff file1.txt file2.txt     # Visual diff in vim
+```
+
+### 7. **File Content Manipulation**
+```bash
+grep "error" logfile.txt        # Search text pattern
+sed 's/old/new/g' file.txt     # Find and replace
+awk '{print $1}' file.txt       # Extract first column
+sort file.txt                   # Sort lines
+uniq file.txt                   # Remove duplicate lines
+```
+
+### 8. **File Compression**
+```bash
+tar -czvf archive.tar.gz dir/   # Create compressed archive
+tar -xzvf archive.tar.gz       # Extract archive
+zip -r archive.zip dir/        # Create ZIP archive
+unzip archive.zip              # Extract ZIP
+```
+
+### 9. **File System Management**
+```bash
+df -h                         # Show disk usage
+du -sh /path/to/dir           # Show directory size
+lsblk                         # List block devices
+mount /dev/sdb1 /mnt/data    # Mount filesystem
+umount /mnt/data              # Unmount filesystem
+```
+
+### 10. **Special Files**
+```bash
+ln -s source.txt link.txt     # Create symbolic link
+ln source.txt hardlink.txt    # Create hard link
+mkfifo mypipe                 # Create named pipe
+```
+
+---
+
+## 🔐 Security Best Practices
+
+1. **User Security**
+   ```bash
+   sudo passwd -l newuser     # Lock user account
+   sudo usermod -L newuser    # Alternative lock method
+   sudo chage -E 2023-12-31 newuser  # Set account expiration
+   ```
+
+2. **File Security**
+   ```bash
+   chmod 600 ~/.ssh/id_rsa   # Restrict private key
+   chmod 644 ~/.ssh/id_rsa.pub # Public key permissions
+   sudo chmod 4755 /bin/sudo  # Set SUID bit (if needed)
+   ```
+
+3. **Audit Files**
+   ```bash
+   sudo auditctl -w /etc/passwd -p wa -k passwd_changes  # Monitor changes
+   sudo ausearch -k passwd_changes  # View audit logs
+   ```
+
+
+## 🛠️ DevOps Use Cases
+
+### 1. **User Provisioning Script**
+```bash
+#!/bin/bash
+# Add new developer user
+username=$1
+sudo useradd -m -s /bin/bash -G developers $username
+echo "$username:TempPass123!" | sudo chpasswd
+sudo chage -d 0 $username  # Force password change on first login
+```
+
+### 2. **File Cleanup Automation**
+```bash
+#!/bin/bash
+# Clean up old logs
+find /var/log -name "*.log" -type f -mtime +30 -exec rm {} \;
+find /tmp -type f -atime +7 -delete
+```
+
+### 3. **Permission Fix Script**
+```bash
+#!/bin/bash
+# Fix web directory permissions
+sudo chown -R www-data:www-data /var/www/html
+sudo find /var/www/html -type d -exec chmod 755 {} \;
+sudo find /var/www/html -type f -exec chmod 644 {} \;
+```
+
+### 4. **Backup Strategy**
+```bash
+#!/bin/bash
+# Create backup with proper permissions
+tar -czvf /backup/$(date +%Y%m%d).tar.gz /important/data
+chmod 600 /backup/*.tar.gz
+chown backup:backup /backup/*.tar.gz
+```
 
 ### `uname` - System information
 **When to use:**

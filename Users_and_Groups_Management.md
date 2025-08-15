@@ -1,9 +1,5 @@
 # Users & Groups Management in Linux
 
-This guide covers essential commands for managing users and groups in Linux systems, which is fundamental for system administration and DevOps practices.
-
----
-
 ## 🧑‍💻 User Management Commands
 
 ### 1. **Viewing User Information**

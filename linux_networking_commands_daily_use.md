@@ -1,4 +1,4 @@
-# Linux Networking Commands: Regular Day Use
+# Linux Networking Commands: Daily Use
 
 ## 1. route
 

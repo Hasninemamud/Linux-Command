@@ -1,948 +1,300 @@
-# Linux Networking Commands for DevOps
 
-This guide covers essential Linux networking commands that DevOps engineers need to manage, troubleshoot, and optimize network infrastructure.
 
----
+# Linux Networking Commands: Detailed Usage Guide
 
-## 🔍 Network Interface Management
+## 1. ping
+**Purpose**: Tests connectivity between your system and a remote host.
+**When to use**: 
+- To check if a remote host is reachable
+- To measure round-trip time for packets
+- To test network connectivity issues
 
-### 1. **ip** - Modern Network Configuration
-**Purpose**: The modern replacement for `ifconfig` with enhanced capabilities.
-
+**Common usage**:
 ```bash
-# Show all network interfaces
-ip addr show
-# or
-ip a
-
-# Show specific interface
-ip addr show eth0
-
-# Bring interface up/down
-ip link set eth0 up
-ip link set eth0 down
-
-# Add IP address
-ip addr add 192.168.1.10/24 dev eth0
-
-# Remove IP address
-ip addr del 192.168.1.10/24 dev eth0
-
-# Show routing table
-ip route show
-# or
-ip r
-
-# Add default route
-ip route add default via 192.168.1.1
-
-# Add static route
-ip route add 10.0.0.0/24 via 192.168.1.1
-
-# Show neighbor table (ARP)
-ip neigh show
-
-# Flush ARP cache
-ip neigh flush all
-
-# Show network statistics
-ip -s link show eth0
+ping google.com                    # Basic ping to a domain
+ping 8.8.8.8                       # Ping an IP address
+ping -c 4 google.com               # Send exactly 4 packets
+ping -i 2 google.com               # Wait 2 seconds between each packet
+ping -s 1024 google.com            # Send packets of 1024 bytes
+ping -t 10 google.com              # Timeout after 10 seconds
 ```
 
-### 2. **ifconfig** - Legacy Interface Configuration
-**Purpose**: Traditional network interface configuration (being phased out but still common).
+## 2. netstat
+**Purpose**: Network statistics utility that displays network connections, routing tables, interface statistics, etc.
+**When to use**:
+- To monitor network connections
+- To check which ports are open/listening
+- To view network interface statistics
 
+**Common usage**:
 ```bash
-# Show all interfaces
-ifconfig
-
-# Show specific interface
-ifconfig eth0
-
-# Configure IP address
-ifconfig eth0 192.168.1.10 netmask 255.255.255.0
-
-# Bring interface up/down
-ifconfig eth0 up
-ifconfig eth0 down
-
-# Set MTU size
-ifconfig eth0 mtu 1500
+netstat -a                         # Show all connections
+netstat -t                         # Show TCP connections
+netstat -u                         # Show UDP connections
+netstat -l                         # Show only listening ports
+netstat -p                         # Show PID/Program name
+netstat -n                         # Show numeric addresses (no DNS resolution)
+netstat -r                         # Display routing table
+netstat -i                         # Show network interface statistics
+netstat -s                         # Show network statistics
+netstat -tulnp                     # Show all listening TCP/UDP ports with PIDs
 ```
 
----
+## 3. ifconfig
+**Purpose**: Interface configurator - used to initialize, configure, and display network interfaces.
+**When to use**:
+- To view network interface configuration
+- To assign IP addresses to interfaces
+- To enable or disable interfaces
 
-## 🌐 Network Connectivity Testing
-
-### 3. **ping** - Test Network Connectivity
-**Purpose**: Test reachability of network hosts and measure latency.
-
+**Common usage**:
 ```bash
-# Basic ping
-ping google.com
-
-# Send specific number of packets
-ping -c 4 google.com
-
-# Continuous ping with timestamp
-ping -D google.com
-
-# Flood ping (use with caution)
-ping -f google.com
-
-# Specify interface
-ping -I eth0 google.com
-
-# Ping without waiting for reply
-ping -q -c 1 google.com
-
-# Set packet size
-ping -s 1500 google.com
+ifconfig                           # Display all active interfaces
+ifconfig eth0                      # Display specific interface
+ifconfig eth0 up                   # Enable interface
+ifconfig eth0 down                 # Disable interface
+ifconfig eth0 192.168.1.100        # Assign IP address
+ifconfig eth0 netmask 255.255.255.0 # Assign subnet mask
+ifconfig eth0 broadcast 192.168.1.255 # Assign broadcast address
+ifconfig eth0 mtu 1500             # Set Maximum Transmission Unit
 ```
 
-### 4. **traceroute** - Trace Network Path
-**Purpose**: Display the route packets take to a network host.
+## 4. traceroute vs tracepath
+**Purpose**: Both commands trace the network path to a destination, showing intermediate hops.
 
+### traceroute
+**When to use**:
+- To discover the route packets take to a network host
+- To identify network bottlenecks or failures
+
+**Common usage**:
 ```bash
-# Basic traceroute
-traceroute google.com
-
-# Use ICMP instead of UDP
-traceroute -I google.com
-
-# Set maximum hops
-traceroute -m 15 google.com
-
-# Don't resolve hostnames
-traceroute -n google.com
-
-# Set packet size
-traceroute google.com 1500
+traceroute google.com              # Trace route to domain
+traceroute -n google.com           # Don't resolve hostnames
+traceroute -I google.com           # Use ICMP ECHO for probes
+traceroute -T google.com           # Use TCP SYN for probes
+traceroute -w 2 google.com         # Wait 2 seconds for response
 ```
 
-### 5. **tracepath** - Simple Path Tracer
-**Purpose**: Similar to traceroute but doesn't require special privileges.
+### tracepath
+**When to use**:
+- Similar to traceroute but doesn't require special privileges
+- When traceroute is not available
 
+**Common usage**:
 ```bash
-# Basic tracepath
-tracepath google.com
-
-# Set maximum hops
-tracepath -m 15 google.com
+tracepath google.com               # Trace path to domain
+tracepath -n google.com            # Don't resolve hostnames
+tracepath -b google.com            # Show both hop address and hostname
 ```
 
-### 6. **mtr** - Network Diagnostic Tool
-**Purpose**: Combines ping and traceroute functionality in a single tool.
+## 5. mtr
+**Purpose**: "My Traceroute" - combines traceroute and ping functionality in a single network diagnostic tool.
+**When to use**:
+- For continuous network monitoring
+- To identify packet loss at specific hops
+- When you need more detailed statistics than traceroute
 
+**Common usage**:
 ```bash
-# Basic mtr
-mtr google.com
-
-# Use report mode
-mtr --report google.com
-
-# Set packet size
-mtr --report --psize=1500 google.com
-
-# Show numeric IPs only
-mtr --no-dns google.com
-
-# Set interval between pings
-mtr --interval=0.5 google.com
+mtr google.com                     # Run mtr in interactive mode
+mtr -n google.com                  # Don't resolve hostnames
+mtr -c 10 google.com               # Send 10 packets to each hop
+mtr -r google.com                  # Report mode (single run)
+mtr -w google.com                  # Use wide mode for long hostnames
+mtr --tcp google.com               # Use TCP instead of ICMP
 ```
 
----
+## 6. nslookup
+**Purpose**: Name Server Lookup - queries DNS servers to obtain domain name or IP address mapping.
+**When to use**:
+- To query DNS information
+- To troubleshoot DNS resolution issues
+- To find MX records, NS records, etc.
 
-## 📊 Network Statistics and Monitoring
-
-### 7. **netstat** - Network Statistics
-**Purpose**: Display network connections, routing tables, interface statistics, masquerade connections, and multicast memberships.
-
+**Common usage**:
 ```bash
-# Show all connections
-netstat -a
-
-# Show TCP connections
-netstat -t
-
-# Show UDP connections
-netstat -u
-
-# Show listening ports
-netstat -l
-
-# Show numeric addresses (no DNS resolution)
-netstat -n
-
-# Show PID/program name
-netstat -p
-
-# Show routing table
-netstat -r
-
-# Show interface statistics
-netstat -i
-
-# Show multicast group memberships
-netstat -g
-
-# Show all TCP/UDP connections with numeric addresses and PIDs
-netstat -tunp
-
-# Show listening TCP ports with PIDs
-netstat -tlnp
+nslookup google.com                # Basic DNS query
+nslookup 8.8.8.8                   # Reverse DNS lookup
+nslookup -type=MX google.com       # Query MX records
+nslookup -type=NS google.com       # Query NS records
+nslookup -type=A google.com        # Query A records
+nslookup -type=ANY google.com      # Query all records
+nslookup -debug google.com         # Show debug information
 ```
 
-### 8. **ss** - Socket Statistics
-**Purpose**: Modern replacement for netstat with more features and better performance.
+## 7. telnet
+**Purpose**: Teletype Network - used for bidirectional interactive text-oriented communication over a network.
+**When to use**:
+- To test connectivity to a specific port
+- To connect to remote systems (less secure than SSH)
+- For basic network troubleshooting
 
+**Common usage**:
 ```bash
-# Show all connections
-ss -a
-
-# Show TCP connections
-ss -t
-
-# Show UDP connections
-ss -u
-
-# Show listening sockets
-ss -l
-
-# Show process information
-ss -p
-
-# Show numeric addresses
-ss -n
-
-# Show summary statistics
-ss -s
-
-# Show all TCP sockets with process info
-ss -tp
-
-# Show listening TCP ports with process info
-ss -tlnp
-
-# Show socket memory usage
-ss -m
-
-# Show timer information
-ss -o
-
-# Filter by state
-ss state established
-ss state time-wait
+telnet example.com                 # Connect to default telnet port (23)
+telnet example.com 80              # Connect to specific port (HTTP)
+telnet 192.168.1.1                 # Connect to IP address
+telnet -l user example.com         # Specify username
 ```
 
-### 9. **nload** - Network Traffic Monitor
-**Purpose**: Monitor network traffic and bandwidth usage in real-time.
+## 8. hostname
+**Purpose**: Display or set the system's host name.
+**When to use**:
+- To check the current hostname of the system
+- To temporarily change the hostname
+- To view domain information
 
+**Common usage**:
 ```bash
-# Monitor all interfaces
-nload
-
-# Monitor specific interface
-nload eth0
-
-# Update interval in milliseconds
-nload -t 500
-
-# Set units (bits, bytes, kbits, kbytes)
-nload -u m
+hostname                           # Show current hostname
+hostname -f                        # Show fully qualified domain name
+hostname -i                        # Show IP address of the host
+hostname -d                        # Show domain name
+hostname new-hostname              # Set temporary hostname
+hostname -b new-hostname           # Set hostname permanently (on some systems)
 ```
 
-### 10. **iftop** - Interface Bandwidth Monitor
-**Purpose**: Display bandwidth usage on an interface by host.
+## 9. ip
+**Purpose**: Show/manipulate routing, network devices, interfaces, and tunnels (modern replacement for ifconfig).
+**When to use**:
+- To view network interface information
+- To manage IP addresses
+- To manage routing tables
+- For modern network configuration
 
+**Common usage**:
 ```bash
-# Monitor default interface
-iftop
-
-# Monitor specific interface
-iftop -i eth0
-
-# Don't show hostname lookups
-iftop -n
-
-# Show port numbers
-iftop -P
-
-# Use specific network mask
-iftop -F 192.168.1.0/24
+ip addr show                       # Display all interfaces and addresses
+ip link show                       # Display network interfaces
+ip link set eth0 up                # Bring interface up
+ip link set eth0 down              # Bring interface down
+ip addr add 192.168.1.100/24 dev eth0 # Add IP address to interface
+ip addr del 192.168.1.100/24 dev eth0 # Remove IP address
+ip route show                      # Display routing table
+ip route add default via 192.168.1.1 # Add default route
+ip neigh show                      # Show ARP table
 ```
 
-### 11. **nethogs** - Network Bandwidth Monitoring by Process
-**Purpose**: Show network bandwidth usage by process.
+## 10. iwconfig
+**Purpose**: Configure wireless network interfaces.
+**When to use**:
+- To view or configure wireless network parameters
+- To set wireless network modes
+- To manage wireless connections
 
+**Common usage**:
 ```bash
-# Monitor all interfaces
-nethogs
-
-# Monitor specific interface
-nethogs eth0
-
-# Show in KB/s
-nethogs -k
-
-# Show in MB/s
-nethogs -m
-
-# Show in bits/s
-nethogs -b
-
-# Refresh delay in seconds
-nethogs -t 3
+iwconfig                           # Show all wireless interfaces
+iwconfig wlan0                     # Show specific wireless interface
+iwconfig wlan0 essid "NetworkName" # Connect to network by ESSID
+iwconfig wlan0 mode managed        # Set mode to managed
+iwconfig wlan0 key s:password      # Set WEP key
+iwconfig wlan0 channel 6           # Set channel
+iwconfig wlan0 rate 54M            # Set data rate
 ```
 
----
+## 11. ss
+**Purpose**: Socket Statistics - utility to investigate sockets (replacement for netstat).
+**When to use**:
+- To display socket statistics
+- To monitor network connections
+- For faster and more detailed output than netstat
 
-## 🔒 Network Security
-
-### 12. **iptables** - Packet Filtering and NAT
-**Purpose**: Configure Linux kernel firewall (IPv4).
-
+**Common usage**:
 ```bash
-# Show all rules
-iptables -L -v -n
-
-# Show rules for specific chain
-iptables -L INPUT -v -n
-
-# Allow incoming SSH
-iptables -A INPUT -p tcp --dport 22 -j ACCEPT
-
-# Allow HTTP/HTTPS
-iptables -A INPUT -p tcp --dport 80 -j ACCEPT
-iptables -A INPUT -p tcp --dport 443 -j ACCEPT
-
-# Allow established connections
-iptables -A INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
-
-# Allow loopback
-iptables -A INPUT -i lo -j ACCEPT
-
-# Block all other incoming
-iptables -A INPUT -j DROP
-
-# Save rules (Debian/Ubuntu)
-iptables-save > /etc/iptables/rules.v4
-
-# Save rules (RHEL/CentOS)
-service iptables save
-
-# NAT configuration
-iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
-
-# Port forwarding
-iptables -t nat -A PREROUTING -p tcp --dport 80 -j REDIRECT --to-port 8080
-
-# Delete rule
-iptables -D INPUT -p tcp --dport 22 -j ACCEPT
-
-# Flush all rules
-iptables -F
-iptables -t nat -F
+ss -t                              # Show TCP sockets
+ss -u                              # Show UDP sockets
+ss -a                              # Show all sockets
+ss -l                              # Show listening sockets
+ss -n                              # Show numeric addresses (no DNS)
+ss -p                              # Show process using socket
+ss -t -a                           # Show all TCP sockets
+ss -u -a                           # Show all UDP sockets
+ss -t -n -p                        # Show TCP sockets with numeric addresses and processes
 ```
 
-### 13. **nftables** - Modern Packet Filtering Framework
-**Purpose**: Modern replacement for iptables with simplified syntax.
+## 12. arp
+**Purpose**: Address Resolution Protocol - manipulates or displays the kernel's ARP cache.
+**When to use**:
+- To view the ARP cache (IP to MAC address mappings)
+- To manually add or remove ARP entries
+- To troubleshoot ARP-related issues
 
+**Common usage**:
 ```bash
-# Show all rules
-nft list ruleset
-
-# Create a table
-nft add table inet filter
-
-# Create a chain
-nft add chain inet filter input { type filter hook input priority 0 \; }
-
-# Add rules
-nft add rule inet filter input tcp dport 22 accept
-nft add rule inet filter input tcp dport { 80, 443 } accept
-nft add rule inet filter input iif "lo" accept
-nft add rule inet filter input ct state established,related accept
-nft add rule inet filter input drop
-
-# Save rules
-nft list ruleset > /etc/nftables.conf
-
-# Load rules
-nft -f /etc/nftables.conf
+arp -a                             # Show all ARP entries
+arp -v                             # Show verbose information
+arp -n                             # Show numeric addresses (no DNS)
+arp -i eth0                        # Show ARP entries for specific interface
+arp -s 192.168.1.100 00:11:22:33:44:55 # Add static ARP entry
+arp -d 192.168.1.100               # Delete ARP entry
 ```
 
-### 14. **ufw** - Uncomplicated Firewall
-**Purpose**: Simplified firewall management (Ubuntu default).
+## 13. dig
+**Purpose**: Domain Information Groper - DNS lookup utility (more detailed than nslookup).
+**When to use**:
+- For detailed DNS queries
+- To troubleshoot DNS issues
+- To view complete DNS response information
 
+**Common usage**:
 ```bash
-# Enable firewall
-sudo ufw enable
-
-# Disable firewall
-sudo ufw disable
-
-# Show status
-sudo ufw status
-
-# Allow SSH
-sudo ufw allow ssh
-
-# Allow specific port
-sudo ufw allow 8080/tcp
-
-# Allow service by name
-sudo ufw allow http
-sudo ufw allow https
-
-# Allow IP range
-sudo ufw allow from 192.168.1.0/24
-
-# Deny specific port
-sudo ufw deny 25
-
-# Delete rule
-sudo ufw delete allow 8080/tcp
-
-# Reset to default
-sudo ufw reset
-
-# Enable logging
-sudo ufw logging on
-
-# Show verbose status
-sudo ufw status verbose
+dig google.com                     # Basic DNS query
+dig google.com ANY                 # Query all records
+dig google.com MX                  # Query MX records
+dig -x 8.8.8.8                     # Reverse DNS lookup
+dig +short google.com              # Show only answer section
+dig +trace google.com              # Trace the DNS path
+dig @8.8.8.8 google.com            # Use specific DNS server
 ```
 
-### 15. **firewalld** - Dynamic Firewall Manager
-**Purpose**: Dynamic firewall management (RHEL/CentOS default).
+## 14. nc (netcat)
+**Purpose**: Network utility for reading from and writing to network connections using TCP or UDP.
+**When to use**:
+- To create network connections
+- To transfer files between systems
+- To port scan
+- For network debugging
 
+**Common usage**:
 ```bash
-# Start and enable firewalld
-sudo systemctl start firewalld
-sudo systemctl enable firewalld
-
-# Check status
-sudo firewall-cmd --state
-
-# Show active zones
-sudo firewall-cmd --get-active-zones
-
-# Show default zone
-sudo firewall-cmd --get-default-zone
-
-# Show configuration
-sudo firewall-cmd --list-all
-
-# Add permanent rule
-sudo firewall-cmd --permanent --add-service=http
-sudo firewall-cmd --permanent --add-port=8080/tcp
-
-# Reload configuration
-sudo firewall-cmd --reload
-
-# Add temporary rule (lost on reload)
-sudo firewall-cmd --add-service=https
-
-# Remove service
-sudo firewall-cmd --permanent --remove-service=http
-
-# Add port forwarding
-sudo firewall-cmd --permanent --add-forward-port=port=80:proto=tcp:toport=8080
-
-# Add rich rule
-sudo firewall-cmd --permanent --add-rich-rule='rule family="ipv4" source address="192.168.1.0/24" service name="ssh" accept'
-
-# Panic mode (block all traffic)
-sudo firewall-cmd --panic-on
-sudo firewall-cmd --panic-off
+nc -l -p 1234                      # Listen on port 1234
+nc example.com 80                  # Connect to port 80 on example.com
+nc -z -v example.com 80            # Scan if port 80 is open
+nc -l -p 1234 > received_file.txt  # Receive a file
+nc example.com 1234 < file.txt     # Send a file
+nc -u -l -p 1234                   # Listen on UDP port 1234
+nc -v -w 2 -z example.com 20-30    # Port scan ports 20-30
 ```
 
----
+## 15. whois
+**Purpose**: Client for the whois directory service.
+**When to use**:
+- To look up domain registration information
+- To find contact information for a domain
+- To check domain availability
 
-## 🔍 Network Troubleshooting
-
-### 16. **nslookup** - DNS Query Tool
-**Purpose**: Query DNS servers for information.
-
+**Common usage**:
 ```bash
-# Basic DNS query
-nslookup google.com
-
-# Query specific DNS server
-nslookup google.com 8.8.8.8
-
-# Reverse DNS lookup
-nslookup 8.8.8.8
-
-# Query MX records
-nslookup -type=mx google.com
-
-# Query NS records
-nslookup -type=ns google.com
-
-# Query SOA records
-nslookup -type=soa google.com
-
-# Query all records
-nslookup -type=any google.com
+whois google.com                   # Basic whois query
+whois 8.8.8.8                      # Whois for IP address
+whois -h whois.example.com domain.com # Use specific whois server
+whois -H domain.com                # Hide legal disclaimers
 ```
 
-### 17. **dig** - DNS Information Groper
-**Purpose**: Advanced DNS query tool with more features than nslookup.
+## 16. ifplugstatus
+**Purpose**: Detects link status in network interfaces.
+**When to use**:
+- To check if a network cable is plugged in
+- To verify interface link status
+- For automated network configuration scripts
 
+**Common usage**:
 ```bash
-# Basic DNS query
-dig google.com
-
-# Query specific record type
-dig google.com A
-dig google.com MX
-dig google.com NS
-
-# Reverse DNS lookup
-dig -x 8.8.8.8
-
-# Query specific DNS server
-dig @8.8.8.8 google.com
-
-# Short answer
-dig +short google.com
-
-# Show all DNS records
-dig google.com ANY
-
-# Trace DNS delegation
-dig +trace google.com
-
-# Query with DNSSEC
-dig +dnssec google.com
-
-# Show only answer section
-dig +noall +answer google.com
+ifplugstatus                       # Check status of all interfaces
+ifplugstatus eth0                  # Check status of specific interface
+ifplugstatus -a                    # Check all interfaces
+ifplugstatus -q                    # Quiet mode (exit code indicates status)
 ```
-
-### 18. **host** - DNS Lookup Utility
-**Purpose**: Simple DNS lookup utility.
-
-```bash
-# Basic lookup
-host google.com
-
-# Lookup specific record type
-host -t MX google.com
-
-# Reverse lookup
-host 8.8.8.8
-
-# Use specific DNS server
-host google.com 8.8.8.8
-
-# Show all information
-host -a google.com
-
-# Verbose output
-host -v google.com
-```
-
-### 19. **tcpdump** - Packet Analyzer
-**Purpose**: Capture and analyze network traffic.
-
-```bash
-# Capture on default interface
-tcpdump
-
-# Capture on specific interface
-tcpdump -i eth0
-
-# Save capture to file
-tcpdump -w capture.pcap
-
-# Read capture file
-tcpdump -r capture.pcap
-
-# Show human-readable timestamps
-tcpdump -tttt
-
-# Capture specific port
-tcpdump port 80
-
-# Capture specific host
-tcpdump host 192.168.1.1
-
-# Capture specific protocol
-tcpdump icmp
-
-# Capture with filter expression
-tcpdump "src host 192.168.1.1 and dst port 80"
-
-# Capture in hex and ASCII
-tcpdump -X
-
-# Limit number of packets
-tcpdump -c 100
-
-# Capture without DNS resolution
-tcpdump -n
-```
-
-### 20. **wireshark** - Network Protocol Analyzer
-**Purpose**: GUI-based network protocol analyzer (can also use tshark for CLI).
-
-```bash
-# Command-line version (tshark)
-# Capture on interface
-tshark -i eth0
-
-# Capture to file
-tshark -i eth0 -w capture.pcap
-
-# Read capture file
-tshark -r capture.pcap
-
-# Show only HTTP traffic
-tshark -i eth0 -Y "http"
-
-# Show only specific host
-tshark -i eth0 -Y "host 192.168.1.1"
-
-# Display filter
-tshark -r capture.pcap -Y "tcp.port == 80"
-
-# Show statistics
-tshark -z conv,tcp
-```
-
-### 21. **nc** / **netcat** - Network Swiss Army Knife
-**Purpose**: Read from and write to network connections using TCP or UDP.
-
-```bash
-# Listen on TCP port
-nc -l -p 8080
-
-# Connect to TCP port
-nc 192.168.1.1 8080
-
-# Listen on UDP port
-nc -u -l -p 8080
-
-# Connect to UDP port
-nc -u 192.168.1.1 8080
-
-# Port scan
-nc -z -v 192.168.1.1 1-100
-
-# Transfer file (receiver)
-nc -l -p 8080 > received_file.txt
-
-# Transfer file (sender)
-nc 192.168.1.1 8080 < file_to_send.txt
-
-# Chat server
-nc -l -p 8080
-
-# Chat client
-nc 192.168.1.1 8080
-
-# Simple HTTP server
-echo -e "HTTP/1.1 200 OK\r\n\r\nHello World" | nc -l -p 8080
-```
-
-### 22. **socat** - Multipurpose Relay
-**Purpose**: More advanced version of netcat with bidirectional data streams.
-
-```bash
-# TCP port forward
-socat TCP-LISTEN:8080,fork TCP:192.168.1.1:80
-
-# Serial port over TCP
-socat TCP-LISTEN:8080,fork FILE:/dev/ttyS0,b115200,raw
-
-# Connect to serial port
-socat TCP:192.168.1.1:8080 FILE:/dev/ttyUSB0,b115200,raw
-
-# UDP broadcast
-socat UDP-DATAGRAM:192.168.1.255:8080,broadcast,source-port=8080 -
-
-# Create virtual network interface
-socat TUN:192.168.100.1/24,up TUN:192.168.100.2/24,up
-```
-
----
-
-## 📡 Network Configuration Files
-
-### 23. **Network Configuration Management**
-
-#### Debian/Ubuntu (Netplan)
-```bash
-# View Netplan configuration
-cat /etc/netplan/*.yaml
-
-# Apply Netplan configuration
-sudo netplan apply
-
-# Test Netplan configuration
-sudo netplan try
-
-# Generate configuration
-sudo netplan generate
-```
-
-#### RHEL/CentOS (NetworkManager)
-```bash
-# Show NetworkManager status
-nmcli general status
-
-# Show all connections
-nmcli connection show
-
-# Show active connections
-nmcli connection show --active
-
-# Show device status
-nmcli device status
-
-# Configure connection
-nmcli connection add type ethernet con-name "eth0" ifname eth0 ip4 192.168.1.10/24 gw4 192.168.1.1
-
-# Set DNS
-nmcli connection modify eth0 ipv4.dns "8.8.8.8 8.8.4.4"
-
-# Bring connection up/down
-nmcli connection up eth0
-nmcli connection down eth0
-
-# Show connection details
-nmcli connection show eth0
-```
-
-#### Static Configuration Files
-```bash
-# View interfaces file (Debian/Ubuntu)
-cat /etc/network/interfaces
-
-# View ifcfg files (RHEL/CentOS)
-cat /etc/sysconfig/network-scripts/ifcfg-eth0
-
-# View resolv.conf
-cat /etc/resolv.conf
-
-# View hosts file
-cat /etc/hosts
-```
-
----
-
-## 🌐 Network Services
-
-### 24. **systemd-networkd** - Network Configuration Service
-**Purpose**: System network configuration service for systemd-based systems.
-
-```bash
-# Enable and start systemd-networkd
-sudo systemctl enable systemd-networkd
-sudo systemctl start systemd-networkd
-
-# Check status
-sudo systemctl status systemd-networkd
-
-# View network configuration
-networkctl
-
-# View link status
-networkctl status
-
-# View all links
-networkctl list
-
-# Test DNS resolution
-systemd-resolve google.com
-
-# View DNS configuration
-systemd-resolve --status
-```
-
-### 25. **Network Time Protocol (NTP)**
-**Purpose**: Synchronize system time across network.
-
-```bash
-# Check NTP status
-timedatectl status
-
-# Enable NTP synchronization
-sudo timedatectl set-ntp true
-
-# List NTP peers
-ntpq -p
-
-# Force time sync
-sudo ntpd -gq
-
-# Check time server
-chronyc sources
-```
-
----
-
-## 🚀 DevOps Networking Use Cases
-
-### 1. **Network Configuration Script**
-```bash
-#!/bin/bash
-# Configure network interface
-IP="192.168.1.10"
-NETMASK="24"
-GATEWAY="192.168.1.1"
-DNS="8.8.8.8 8.8.4.4"
-
-# Set IP address
-sudo ip addr add $IP/$NETMASK dev eth0
-
-# Set default route
-sudo ip route add default via $GATEWAY
-
-# Set DNS
-echo "nameserver $DNS" | sudo tee /etc/resolv.conf
-
-# Bring interface up
-sudo ip link set eth0 up
-
-# Verify configuration
-ip addr show eth0
-ip route show
-```
-
-### 2. **Port Monitoring Script**
-```bash
-#!/bin/bash
-# Monitor critical ports
-HOST="localhost"
-PORTS=(22 80 443 8080)
-
-for port in "${PORTS[@]}"; do
-  if nc -z $HOST $port; then
-    echo "Port $port is open"
-  else
-    echo "Port $port is closed"
-  fi
-done
-```
-
-### 3. **Network Traffic Capture Script**
-```bash
-#!/bin/bash
-# Capture traffic for specific host
-HOST="192.168.1.100"
-INTERFACE="eth0"
-DURATION="60"  # seconds
-
-sudo tcpdump -i $INTERFACE -w capture_$HOST.pcap host $HOST &
-TCPDUMP_PID=$!
-
-sleep $DURATION
-sudo kill $TCPDUMP_PID
-
-echo "Capture saved to capture_$HOST.pcap"
-```
-
-### 4. **Firewall Configuration Script**
-```bash
-#!/bin/bash
-# Configure basic firewall
-# Flush existing rules
-sudo iptables -F
-sudo iptables -t nat -F
-
-# Allow loopback
-sudo iptables -A INPUT -i lo -j ACCEPT
-
-# Allow established connections
-sudo iptables -A INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
-
-# Allow SSH
-sudo iptables -A INPUT -p tcp --dport 22 -j ACCEPT
-
-# Allow HTTP/HTTPS
-sudo iptables -A INPUT -p tcp --dport 80 -j ACCEPT
-sudo iptables -A INPUT -p tcp --dport 443 -j ACCEPT
-
-# Block all other incoming
-sudo iptables -A INPUT -j DROP
-
-# Save rules
-sudo iptables-save > /etc/iptables/rules.v4
-
-echo "Firewall configured successfully"
-```
-
-## 🔍 Troubleshooting Tips
-
-### Common Network Issues and Solutions:
-
-#### 1. No Network Connectivity
-```bash
-# Check interface status
-ip addr show
-
-# Check link status
-ip link show
-
-# Check routing
-ip route show
-
-# Test DNS resolution
-nslookup google.com
-
-# Test connectivity
-ping 8.8.8.8
-```
-
-#### 2. Port Not Accessible
-```bash
-# Check if service is listening
-ss -tlnp | grep :port
-
-# Check firewall rules
-sudo iptables -L -v -n
-
-# Test port locally
-nc -z localhost port
-
-# Test port remotely
-nc -z host port
-```
-
-#### 3. Slow Network Performance
-```bash
-# Check interface errors
-ip -s link show
-
-# Check network utilization
-iftop
-
-# Check for packet loss
-ping -c 100 host | grep "packet loss"
-
-# Check network statistics
-netstat -i
-```
-
-#### 4. DNS Resolution Issues
-```bash
-# Check DNS configuration
-cat /etc/resolv.conf
-
-# Test DNS resolution
-nslookup google.com
-dig google.com
-
-# Test with different DNS server
-nslookup google.com 8.8.8.8
-
-# Check DNS service status
-sudo systemctl status systemd-resolved
-```
-
----
 
